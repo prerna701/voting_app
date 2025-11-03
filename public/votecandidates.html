@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vote Your Candidate</title>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f3f3f3;
+}
+
+h1 {
+  text-align: center;
+}
+
+.candidate-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+button {
+  padding: 10px 15px;
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+  </style>
+</head>
+<body>
+  <h1>Election Voting System</h1>
+  <div id="candidates"></div>
+  <!-- http://localhost:3000/candidate/vote/67ff4cad327ea60149afc692 -->
+  <script>
+    
+    const API_BASE = 'http://localhost:3000'; 
+const token = localStorage.getItem('token'); // make sure this is saved after login
+
+// Fetch all candidates
+async function loadCandidates() {
+  try {
+    const res = await fetch(`${API_BASE}/candidate/candidates`);
+    const candidates = await res.json();
+
+    const container = document.getElementById('candidates');
+    container.innerHTML = '';
+
+    candidates.forEach(candidate => {
+      const card = document.createElement('div');
+      card.className = 'candidate-card';
+
+      card.innerHTML = `
+        <h2>${candidate.name}</h2>
+        <p><strong>Party:</strong> ${candidate.party}</p>
+        <p><strong>Age:</strong> ${candidate.age}</p>
+        <p><strong>Votes:</strong> ${candidate.voteCount}</p>
+        <button onclick="vote('${candidate._id}', this)">Vote</button>
+      `;
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error('Error loading candidates:', err);
+    alert('Error loading candidates');
+  }
+}
+
+// Vote function
+async function vote(candidateID, btn) {
+  try {
+    //localhost:3000/candidate/vote/67ff4cad327ea60149afc692 -->
+    const res = await fetch(`${API_BASE}/candidate/vote/${candidateID}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(data.message);
+      btn.disabled = true;
+      btn.textContent = 'Voted';
+      loadCandidates(); // Refresh vote count
+    } else {
+      alert(data.message || 'Error while voting');
+    }
+  } catch (err) {
+    console.error('Voting error:', err);
+    alert('Error submitting vote');
+  }
+}
+
+loadCandidates();
+
+  </script>
+</body>
+</html>

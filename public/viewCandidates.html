@@ -1,0 +1,281 @@
+<!-- viewcandidates.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Candidates</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      width: 250px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+      margin: 0;
+    }
+
+    .card p {
+      margin: 8px 0;
+    }
+
+    .error {
+      color: red;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Candidate List</h1>
+    <div id="candidate-list" class="card-container"></div>
+    <p id="error-message" class="error"></p>
+  </div>
+
+  <script>
+    const candidateListDiv = document.getElementById("candidate-list");
+    const errorMessage = document.getElementById("error-message");
+
+    // Fetch candidates from the working API
+    fetch("http://localhost:3000/candidate/candidates")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch candidates");
+        }
+        return res.json();
+      })
+      .then((candidates) => {
+        candidates.forEach((candidate) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h3>${candidate.name}</h3>
+            <p><strong>Party:</strong> ${candidate.party}</p>
+            <p><strong>Age:</strong> ${candidate.age}</p>
+            <p><strong>Total Votes:</strong> ${candidate.voteCount}</p>
+          `;
+          candidateListDiv.appendChild(card);
+        });
+      })
+      .catch((err) => {
+        errorMessage.textContent = err.message;
+      });
+  </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Candidates</title>
+  <style>
+   
+  .container {
+    padding: 40px;
+    font-family: 'Segoe UI', sans-serif;
+    background: #121212;
+    color: white;
+    min-height: 100vh;
+    text-align: center;
+  }
+
+  .container h1 {
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #f7ba2b;
+  }
+
+  .card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+  }
+
+  /* Magic Card Style */
+  .card {
+    --background: linear-gradient(to left, #f7ba2b 0%, #ea5358 100%);
+    width: 300px;
+    height: 254px;
+    padding: 5px;
+    border-radius: 1rem;
+    overflow: visible;
+    background: var(--background);
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+  }
+
+  .card::after {
+    position: absolute;
+    content: "";
+    top: 30px;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    height: 100%;
+    width: 100%;
+    transform: scale(0.8);
+    filter: blur(25px);
+    background: var(--background);
+    transition: opacity .5s;
+  }
+
+  .card:hover::after {
+    opacity: 0;
+  }
+
+  .card-info {
+    --color: #181818;
+    background: var(--color);
+    color: var(--color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    border-radius: .7rem;
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .card .title {
+    font-weight: bold;
+    letter-spacing: .1em;
+    font-size: 1.2rem;
+    color: white;
+  }
+
+  .card:hover .card-info {
+    color: #f7ba2b;
+    transition: color 1s;
+  }
+
+  .error {
+    color: red;
+    margin-top: 20px;
+  }
+  button {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.03);
+  box-shadow: 0 0 10px rgba(247, 186, 43, 0.7), 0 0 20px rgba(234, 83, 88, 0.5);
+}
+
+
+
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Candidate List</h1>
+    <div id="candidate-list" class="card-container"></div>
+    <p id="error-message" class="error"></p>
+  </div>
+
+  <script>
+    const candidateListDiv = document.getElementById("candidate-list");
+    const errorMessage = document.getElementById("error-message");
+
+    // Fetch candidates from the API
+    fetch("http://localhost:3000/candidate/candidates")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch candidates");
+        }
+        return res.json();
+      })
+      .then((candidates) => {
+        candidates.forEach((candidate) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <h3>${candidate.name}</h3>
+            <p><strong>Party:</strong> ${candidate.party}</p>
+            <p><strong>Age:</strong> ${candidate.age}</p>
+            <p><strong>Total Votes:</strong> ${candidate.voteCount}</p>
+            <button onclick="vote('${candidate._id}')">Vote</button>
+          `;
+          candidateListDiv.appendChild(card);
+        });
+      })
+      .catch((err) => {
+        errorMessage.textContent = err.message;
+      });
+
+    // Function to handle voting
+    async function vote(candidateID) {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        document.getElementById("error-message").textContent = "Please log in to vote.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:3000/candidate/vote/${candidateID}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("Vote recorded successfully!");
+          location.reload(); // Refresh the page to update the vote count
+        } else {
+          document.getElementById("error-message").textContent = data.message || "An error occurred.";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("error-message").textContent = "Something went wrong while voting.";
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartVote - Online Voting</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ainpage.css" />
+  <script src="script.js" defer></script>
+</head>
+<body>
+    
+  <!-- Bubbles background -->
+  <div class="bubbles" id="bubble-container"></div>
+
+  <div class="container">
+    <header class="fade-in">
+      <h1><span>SmartVote</span> - Your Vote, Your Voice</h1>
+      <p>Empowering democracy through secure digital voting</p>
+    </header>
+
+    <section class="intro fade-in-up">
+      <h2>Why Choose Us?</h2>
+      <p>We offer seamless, secure and smart voting using Aadhar-based login and transparent candidate management.</p>
+      
+    </section>
+
+    <section class="features fade-in-up">
+      <h2>Key Features</h2>
+      <ul>
+        <li>🔐 Secure & Verified Aadhar Login</li>
+        <li>🧠 Intelligent Vote Tracking</li>
+        <li>📊 Transparent Results</li>
+        <li>📱 Mobile Ready UI</li>
+      </ul>
+    </section>
+
+    <section class="cta fade-in-up">
+      <h2>Start Now</h2>
+      <div class="btn-group">
+        <a href="admin.html" class="btn">Admin Login</a>
+        <a href="signup.html" class="btn">Voter Login</a>
+      </div>
+    </section>
+
+    <footer class="fade-in">
+      <p>© Designed by Prerna Arora ❤️</p>
+    </footer>
+  </div>
+</body>
+<script>
+    // BUBBLE CREATION
+const container = document.getElementById('bubble-container');
+for (let i = 0; i < 60; i++) {
+  const bubble = document.createElement('span');
+  const size = Math.random() * 20 + 10;
+  bubble.style.width = `${size}px`;
+  bubble.style.height = `${size}px`;
+  bubble.style.left = `${Math.random() * 100}vw`;
+  bubble.style.animationDuration = `${Math.random() * 15 + 10}s`;
+  bubble.style.animationDelay = `${Math.random() * 5}s`;
+  container.appendChild(bubble);
+}
+
+// SCROLL ANIMATIONS
+const fadeEls = document.querySelectorAll('.fade-in, .fade-in-up');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+fadeEls.forEach(el => observer.observe(el));
+
+</script>
+</html>

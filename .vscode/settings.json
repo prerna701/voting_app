@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/9fd10430-648d-42ab-b5d9-936daca61ed5/resourceGroups/nisha/providers/Microsoft.Web/sites/nishacc3",
+    "appService.deploySubpath": "."
+}
