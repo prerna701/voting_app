@@ -6,6 +6,7 @@ pipeline {
         IMAGE_NAME = 'prernaarora123/voting_app'
         VERSION = "v${env.BUILD_NUMBER}"
         DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        PODMAN_HOST = 'ssh://user@127.0.0.1:51071/run/user/1000/podman/podman.sock'
     }
 
     stages {
@@ -35,8 +36,11 @@ pipeline {
         stage('Build Podman Image') {
             steps {
                 echo '🐳 Building Podman image...'
-                withEnv(["PODMAN_HOST=ssh://user@127.0.0.1:51071/run/user/1000/podman/podman.sock"]) {
-                    bat "podman build -t ${IMAGE_NAME}:${VERSION} ."
+                withEnv(["PODMAN_HOST=${env.PODMAN_HOST}"]) {
+                    bat '''
+                        podman info
+                        podman build -t ${IMAGE_NAME}:${VERSION} .
+                    '''
                 }
             }
         }
@@ -44,8 +48,8 @@ pipeline {
         stage('Push to DockerHub via Podman') {
             steps {
                 echo '📤 Pushing image to DockerHub...'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    withEnv(["PODMAN_HOST=ssh://user@127.0.0.1:51071/run/user/1000/podman/podman.sock"]) {
+                withEnv(["PODMAN_HOST=${env.PODMAN_HOST}"]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat '''
                             podman login -u "%DOCKER_USER%" -p "%DOCKER_PASS%" docker.io
                             podman push ${IMAGE_NAME}:${VERSION}
@@ -59,10 +63,12 @@ pipeline {
 
         stage('Deploy with Podman Compose') {
             steps {
-                echo '🚀 Deploying application...'
-                withEnv(["PODMAN_HOST=ssh://user@127.0.0.1:51071/run/user/1000/podman/podman.sock"]) {
-                    bat 'podman-compose down || exit 0'
-                    bat 'podman-compose up -d'
+                echo '🚀 Deploying application with Podman Compose...'
+                withEnv(["PODMAN_HOST=${env.PODMAN_HOST}"]) {
+                    bat '''
+                        podman-compose down || exit 0
+                        podman-compose up -d
+                    '''
                 }
             }
         }
