@@ -5,14 +5,14 @@ pipeline {
         GITHUB_REPO = 'https://github.com/prerna701/voting_app.git'
         IMAGE_NAME = 'prernaarora123/voting_app'
         VERSION = "v${env.BUILD_NUMBER}"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 echo '📦 Cloning repository from GitHub...'
-                git branch: 'main', credentialsId: 'githubtoken', url: "${env.GITHUB_REPO}"
+                git branch: 'main', url: "${env.GITHUB_REPO}", credentialsId: 'githubtoken'
             }
         }
 
@@ -32,32 +32,32 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Podman Image') {
             steps {
-                echo '🐳 Building Docker image...'
-                bat "docker build -t ${IMAGE_NAME}:${VERSION} ."
+                echo '🐳 Building Podman image...'
+                bat "podman build -t ${IMAGE_NAME}:${VERSION} ."
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Push to DockerHub via Podman') {
             steps {
-                echo '📤 Pushing Docker image to DockerHub...'
+                echo '📤 Pushing image to DockerHub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat '''
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push ${IMAGE_NAME}:${VERSION}
-                        docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:latest
+                        podman login -u "%DOCKER_USER%" -p "%DOCKER_PASS%" docker.io
+                        podman push ${IMAGE_NAME}:${VERSION}
+                        podman tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
+                        podman push ${IMAGE_NAME}:latest
                     '''
                 }
             }
         }
 
-        stage('Deploy with Docker Compose') {
+        stage('Deploy with Podman Compose') {
             steps {
-                echo '🚀 Deploying application using Docker Compose...'
-                bat 'docker-compose down || exit 0'
-                bat 'docker-compose up -d'
+                echo '🚀 Deploying application...'
+                bat 'podman-compose down || exit 0'
+                bat 'podman-compose up -d'
             }
         }
     }
