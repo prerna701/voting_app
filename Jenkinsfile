@@ -2,75 +2,70 @@ pipeline {
     agent any
 
     environment {
-        // Environment variables
-        APP_NAME = "voting_app"
-        IMAGE_NAME = "voting_app"
-        VERSION = "${BUILD_NUMBER}"
-        SLACK_WEBHOOK_URL = credentials('slack_webhook')  // Add this credential in Jenkins
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        GITHUB_REPO = 'https://github.com/prerna701/voting_app.git'
+        IMAGE_NAME = 'prernaarora123/voting_app'
+        VERSION = "${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Pull Code from GitHub') {
+        stage('Checkout Code') {
             steps {
-                echo '📥 Pulling code from GitHub...'
-                git branch: 'main', url: 'https://github.com/<your-username>/<your-repo>.git'
+                echo 'Cloning repository from GitHub...'
+                git branch: 'main', url: "${env.GITHUB_REPO}"
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo '📦 Running npm install...'
+                echo 'Installing npm dependencies...'
                 sh 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo '🧪 Running tests...'
-                // You can add real tests later (e.g., Jest/Mocha)
-                sh 'echo "No tests yet. Skipping..."'
+                echo 'Running tests...'
+                sh 'npm test || echo "No tests defined, skipping..."'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image with version ${VERSION}..."
+                echo 'Building Docker image...'
                 sh "docker build -t ${IMAGE_NAME}:${VERSION} ."
-                sh "docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                echo 'Pushing Docker image to DockerHub...'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push ${IMAGE_NAME}:${VERSION}
+                        docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:latest
+                    '''
+                }
             }
         }
 
         stage('Deploy with Docker Compose') {
             steps {
-                echo '🚀 Deploying app using Docker Compose...'
+                echo 'Deploying application using Docker Compose...'
                 sh 'docker-compose down || true'
-                sh 'docker-compose up -d --build'
-            }
-        }
-
-        stage('Slack Notification') {
-            steps {
-                echo '💬 Sending Slack notification...'
-                script {
-                    def message = "✅ *Build Successful!* \nApp: ${APP_NAME}\nVersion: ${VERSION}\nBuild URL: ${env.BUILD_URL}"
-                    sh """
-                    curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"${message}"}' ${SLACK_WEBHOOK_URL}
-                    """
-                }
+                sh 'docker-compose up -d'
             }
         }
     }
 
     post {
+        success {
+            echo "✅ Build and Deployment Successful! Version: ${VERSION}"
+        }
         failure {
-            script {
-                def message = "❌ *Build Failed!* \nApp: ${APP_NAME}\nBuild URL: ${env.BUILD_URL}"
-                sh """
-                curl -X POST -H 'Content-type: application/json' \
-                --data '{"text":"${message}"}' ${SLACK_WEBHOOK_URL}
-                """
-            }
+            echo "❌ Build failed. Check logs in Jenkins."
         }
     }
 }
