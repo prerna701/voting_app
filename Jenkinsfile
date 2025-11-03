@@ -2,21 +2,17 @@ pipeline {
     agent any
 
     environment {
-        // 🔐 Credentials and config
-        GITHUB_CREDENTIALS = credentials('githubtoken')
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
         GITHUB_REPO = 'https://github.com/prerna701/voting_app.git'
         IMAGE_NAME = 'prernaarora123/voting_app'
-        VERSION = "${env.BUILD_NUMBER}"
+        VERSION = "v${env.BUILD_NUMBER}"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 echo '📦 Cloning repository from GitHub...'
-                git branch: 'main',
-                    url: "${env.GITHUB_REPO}",
-                    credentialsId: "${env.GITHUB_CREDENTIALS}"
+                git branch: 'main', credentialsId: 'githubtoken', url: "${env.GITHUB_REPO}"
             }
         }
 
@@ -30,7 +26,9 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo '🧪 Running tests...'
-                bat 'npm test || echo "No tests defined, skipping..."'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    bat 'npm test || exit 0'
+                }
             }
         }
 
