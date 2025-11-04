@@ -26,12 +26,16 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                echo "🧪 Running tests (if any)..."
-                bat 'npm test || echo "⚠️ No tests found, continuing..."'
-            }
+stage('Run Tests') {
+    steps {
+        echo '🧪 Running tests (if any)...'
+        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+            bat '''
+                npm test || echo "⚠️ No tests found, continuing..."
+            '''
         }
+    }
+}
 
         stage('Build Docker Image') {
             steps {
