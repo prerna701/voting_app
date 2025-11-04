@@ -2,9 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub')    // Jenkins credentials ID for DockerHub
-        GITHUB_CREDENTIALS = credentials('githubtoken')      // Jenkins credentials ID for GitHub
-        IMAGE_NAME = "prernaarora123/voting_app"             // DockerHub repo name
+        IMAGE_NAME = "prernaarora123/voting_app"
         CONTAINER_NAME = "voting_app"
     }
 
@@ -15,7 +13,7 @@ pipeline {
                 echo "📦 Checking out code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/prerna701/voting_app.git',
-                    credentialsId: "${GITHUB_CREDENTIALS}"
+                    credentialsId: 'githubtoken'
             }
         }
 
@@ -26,33 +24,26 @@ pipeline {
             }
         }
 
-stage('Run Tests') {
-    steps {
-        echo '🧪 Running tests (if any)...'
-        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-            bat '''
-                npm test || echo "⚠️ No tests found, continuing..."
-            '''
-        }
-    }
-}
-
-        stage('Build Docker Image') {
+        stage('Run Tests') {
             steps {
-                echo "🐳 Building Docker image..."
-                bat """
-                    docker build -t ${IMAGE_NAME}:latest .
-                """
+                echo '🧪 Running tests (if any)...'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    bat 'npm test || echo "⚠️ No tests found, continuing..."'
+                }
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Build and Push Docker Image') {
             steps {
-                echo "🚀 Pushing Docker image to DockerHub..."
-                bat """
-                    echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
-                    docker push ${IMAGE_NAME}:latest
-                """
+                echo "🐳 Building and pushing Docker image..."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
+                    bat """
+                        docker logout || echo "No existing login"
+                        echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                        docker build -t %DOCKERHUB_USER%/voting_app:latest .
+                        docker push %DOCKERHUB_USER%/voting_app:latest
+                    """
+                }
             }
         }
 
