@@ -1,25 +1,13 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:6
-    container_name: mongo_db
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-
   voting_app:
-    build: .
+    image: prernaarora123/voting_app:latest
     container_name: voting_app
+    restart: always
     ports:
       - "3000:3000"
     environment:
-      - MONGODB_URL_LOCAL=mongodb://mongo_db:27017/voting
+      - MONGODB_URL_LOCAL=mongodb://host.docker.internal:27017/voting
       - PORT=3000
       - JWT_SECRET=12345
-    depends_on:
-      - mongodb
-
-volumes:
-  mongo-data:

@@ -1,28 +1,36 @@
-const express = require('express')
+const express = require('express');
 const app = express();
-const db = require('./db');
 require('dotenv').config();
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
 
+// Import routes
 const userRoutes = require('./routes/userRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');
-const path = require('path');
+
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
-
-
-
-const bodyParser = require('body-parser');
-app.use(bodyParser.json()); // req.body
+app.use(bodyParser.json());
 app.use(cors());
-const PORT = process.env.PORT || 3000;
 
-// Import the router files
+// ✅ MongoDB connection (works for both local & Docker)
+const mongoose = require('mongoose');
+const mongoURL = process.env.MONGO_URL || process.env.MONGODB_URL_LOCAL;
 
-// Use the routers
+mongoose.connect(mongoURL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch((err) => console.error('❌ MongoDB connection failed:', err));
+
+// Routes
 app.use('/user', userRoutes);
 app.use('/candidate', candidateRoutes);
 
-
-app.listen(PORT, ()=>{
-    console.log('listening on port 3000');
-})
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});

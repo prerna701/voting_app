@@ -1,19 +1,19 @@
-# Use official Node.js image
+# Use Node LTS version
 FROM node:18
 
-# Set working directory
-WORKDIR /voting_app
+# Create app directory
+WORKDIR /usr/src/app
 
-# Copy dependency files
+# Copy package.json first (to leverage caching)
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the code
+# Copy rest of the app
 COPY . .
 
-# Expose app port
+# Expose the app port (matches .env)
 EXPOSE 3000
 
 # Start the app
